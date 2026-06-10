@@ -1,3 +1,5 @@
+#version 330 core
+
 // Fragment shader com modelo de iluminação Phong completo.
 // Os parâmetros Ka, Kd, Ks e Ns vêm do arquivo .mtl de cada objeto
 // e são enviados via uniform pelo draw_object() em objects_manager.py.

@@ -7,16 +7,8 @@ import ntpath
 from objects_manager import (
     _find_first_file, parse_mtl, resolve_obj_and_texture, build_object
 )
-import glfw
 from OpenGL.GL import *
-import numpy as np
-import glm
-import math
 from PIL import Image
-
-from shader_s import Shader
-from objects_manager import *
-from notebook_loading_functions import *
 
 global vertices_list
 vertices_list = []

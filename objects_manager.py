@@ -119,7 +119,7 @@ _MATERIAL_DEFAULTS = {
 }
 
 
-def _upload_material(program, mat):
+def upload_material(program, mat):
     """Envia os parâmetros de material para os uniforms do shader."""
     m = mat if mat is not None else _MATERIAL_DEFAULTS
 
@@ -143,10 +143,10 @@ def draw_object(obj, model_matrix, program):
     # obj pode ser uma lista de partes (sub-objetos) ou um dicionário único
     if isinstance(obj, list):
         for part in obj:
-            _upload_material(program, part.get("material"))
+            upload_material(program, part.get("material"))
             glBindTexture(GL_TEXTURE_2D, part["texture_id"])
             glDrawArrays(GL_TRIANGLES, part["vertice_inicial"], part["quantos_vertices"])
     else:
-        _upload_material(program, obj.get("material"))
+        upload_material(program, obj.get("material"))
         glBindTexture(GL_TEXTURE_2D, obj["texture_id"])
         glDrawArrays(GL_TRIANGLES, obj["vertice_inicial"], obj["quantos_vertices"])
