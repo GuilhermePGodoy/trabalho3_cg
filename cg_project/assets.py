@@ -308,8 +308,14 @@ class AssetManager:
                     bucket = parts.setdefault(material_name, array("f"))
                     for index in range(1, len(face) - 1):
                         triangle = (face[0], face[index], face[index + 1])
-                        face_normal = AssetManager._face_normal(
-                            triangle, positions
+                        needs_face_normal = any(
+                            normal_index is None
+                            for _, _, normal_index in triangle
+                        )
+                        face_normal = (
+                            AssetManager._face_normal(triangle, positions)
+                            if needs_face_normal
+                            else None
                         )
                         for vertex_index, uv_index, normal_index in triangle:
                             position = positions[
@@ -333,7 +339,7 @@ class AssetManager:
                                     )
                                 ]
                                 if normal_index is not None and normals
-                                else face_normal
+                                else face_normal or (0.0, 1.0, 0.0)
                             )
                             bucket.extend((*position, *uv, *normal))
 

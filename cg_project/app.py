@@ -64,6 +64,8 @@ class Application:
         self.objects_by_name = {obj.name: obj for obj in self.objects}
         self.lights = create_lights()
         self.renderer = Renderer(self.assets, cubemap)
+        glViewport(0, 0, self.width, self.height)
+        self.last_frame = glfw.get_time()
 
         if visible:
             glfw.show_window(self.window)
