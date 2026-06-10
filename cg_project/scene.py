@@ -113,6 +113,7 @@ class PointLight:
     group_id: int
     source_object: str
     local_position: tuple[float, float, float]
+    attenuation: tuple[float, float, float] = (1.0, 0.0, 0.0)
     enabled: bool = True
 
 
@@ -154,6 +155,7 @@ MATERIALS = {
     "porta": Material(0.18, 0.65, 0.20, 24.0),
     "frango": Material(0.20, 0.70, 0.12, 16.0),
     "fogueira": Material(0.22, 0.70, 0.18, 24.0),
+    "vagalume": Material(0.45, 0.75, 0.30, 32.0),
     "cama": Material(0.20, 0.75, 0.08, 12.0),
     "comoda": Material(0.18, 0.65, 0.25, 32.0),
     "taca": Material(0.12, 0.55, 0.95, 128.0),
@@ -164,7 +166,7 @@ MATERIALS = {
 def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
     """Associa as malhas carregadas aos objetos e posicionamentos da cena."""
 
-    return [
+    objects = [
         SceneObject(
             "grama",
             meshes["grama"],
@@ -306,11 +308,27 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
         ),
     ]
 
+    for index in range(9):
+        objects.append(
+            SceneObject(
+                f"vagalume_{index + 1}",
+                meshes["vagalume"],
+                Transform(
+                    axis=(0.0, 1.0, 0.0),
+                    scale=(35.0, 35.0, 35.0),
+                ),
+                MATERIALS["vagalume"],
+                EXTERIOR,
+            )
+        )
+
+    return objects
+
 
 def create_lights() -> list[PointLight]:
-    """Cria a fogueira externa e as duas fontes internas independentes."""
+    """Cria as fontes da fogueira, das luminarias e dos vagalumes."""
 
-    return [
+    lights = [
         PointLight(
             "fogueira",
             (1.0, 0.32, 0.05),
@@ -333,3 +351,17 @@ def create_lights() -> list[PointLight]:
             (0.0, 0.4, 0.0),
         ),
     ]
+
+    for index in range(9):
+        lights.append(
+            PointLight(
+                f"luz_vagalume_{index + 1}",
+                (1.2, 1.2, 1.2),
+                EXTERIOR,
+                f"vagalume_{index + 1}",
+                (0.0, 0.002, 0.0),
+                attenuation=(1.0, 0.35, 0.44),
+            )
+        )
+
+    return lights

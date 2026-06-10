@@ -21,6 +21,7 @@ from .assets import AssetManager
 from .camera import Camera
 from .renderer import Renderer
 from .scene import LightingState, create_lights, create_scene
+from .swarm import FireflySwarm
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -66,6 +67,9 @@ class Application:
         )
         self.objects = create_scene(meshes)
         self.objects_by_name = {obj.name: obj for obj in self.objects}
+        self.firefly_swarm = FireflySwarm(
+            [obj for obj in self.objects if obj.name.startswith("vagalume_")]
+        )
         self.lights = create_lights()
         self.renderer = Renderer(self.assets, cubemap)
         glViewport(0, 0, self.width, self.height)
@@ -134,6 +138,11 @@ class Application:
                 models / "lampada/Lamp_Porcelan_DIF.png",
                 False,
             ),
+            "vagalume": (
+                models / "inseto/uploads_files_5014749_Fly_Low_Poly.obj",
+                models / "inseto/Fly_Tris_Diffuse.png",
+                False,
+            ),
         }
 
         meshes = {}
@@ -164,6 +173,7 @@ class Application:
                 glfw.poll_events()
 
                 self._process_movement()
+                self.firefly_swarm.update(self.delta_time)
 
                 glClearColor(0.08, 0.10, 0.14, 1.0)
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -235,6 +245,17 @@ class Application:
             self.lighting.ambient_enabled = not self.lighting.ambient_enabled
             state = "ligada" if self.lighting.ambient_enabled else "desligada"
             print(f"luz ambiente: {state}")
+        elif action == glfw.PRESS and key == glfw.KEY_5:
+            swarm_lights = [
+                light
+                for light in self.lights
+                if light.name.startswith("luz_vagalume_")
+            ]
+            enabled = not any(light.enabled for light in swarm_lights)
+            for light in swarm_lights:
+                light.enabled = enabled
+            state = "ligadas" if enabled else "desligadas"
+            print(f"luzes dos vagalumes: {state}")
         elif action in (glfw.PRESS, glfw.REPEAT):
             if key == glfw.KEY_U:
                 self.lighting.change_ambient(0.05)
@@ -277,7 +298,7 @@ class Application:
     @staticmethod
     def _print_controls() -> None:
         print(
-            "Controles: 1/2/3 luzes, 4 ambiente, "
+            "Controles: 1/2/3 luzes, 4 ambiente, 5 vagalumes, "
             "U/J ambiente, I/K difusa, O/L especular, WASD, mouse, Esc"
         )
 

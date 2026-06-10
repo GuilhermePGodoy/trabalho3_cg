@@ -1,10 +1,11 @@
 #version 330 core
 
-#define MAX_LIGHTS 3
+#define MAX_LIGHTS 12
 
 struct PointLight {
     vec3 position;
     vec3 color;
+    vec3 attenuation;
     int groupID;
     bool enabled;
 };
@@ -55,13 +56,21 @@ void main() {
         }
 
         // Reflexao difusa de Lambert.
-        vec3 lightDir = normalize(lights[i].position - out_fragPos);
+        vec3 lightOffset = lights[i].position - out_fragPos;
+        float lightDistance = length(lightOffset);
+        vec3 lightDir = normalize(lightOffset);
+        float attenuation = 1.0 / (
+            lights[i].attenuation.x
+            + lights[i].attenuation.y * lightDistance
+            + lights[i].attenuation.z * lightDistance * lightDistance
+        );
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
         diffuseTotal += (
             lights[i].color
             * material.kd
             * diffuseScale
             * diffuseFactor
+            * attenuation
         );
 
         // Reflexao especular de Phong.
@@ -75,6 +84,7 @@ void main() {
             * material.ks
             * specularScale
             * specularFactor
+            * attenuation
         );
     }
 

@@ -113,6 +113,9 @@ class Renderer:
                 f"{base}.position", light_positions[light.name]
             )
             self.main_shader.set_vec3(f"{base}.color", light.color)
+            self.main_shader.set_vec3(
+                f"{base}.attenuation", light.attenuation
+            )
             self.main_shader.set_int(f"{base}.groupID", light.group_id)
             self.main_shader.set_int(f"{base}.enabled", int(light.enabled))
 
@@ -142,7 +145,6 @@ class Renderer:
         )
 
         for part in scene_object.mesh.parts:
-            # Somente a geometria que representa uma lampada acesa emite cor.
             emission = (
                 source_light.color
                 if source_light and part.name in scene_object.emissive_parts
