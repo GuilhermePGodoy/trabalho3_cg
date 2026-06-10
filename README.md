@@ -51,8 +51,9 @@ python -c "from cg_project import run; run()"
 
 - A fogueira ocupa sua posicao original e emite uma luz alaranjada.
 - Nove vagalumes se movem em trajetorias pseudoaleatorias ao redor de um
-  centroide proximo a fogueira e a raposa. Cada inseto carrega uma fonte
-  branca atenuada, sem alterar a cor de sua textura.
+  centroide proximo a fogueira e a raposa. Cada inseto possui uma pequena
+  barriga branca emissiva com uma fonte atenuada, que pisca de forma subita
+  e assincrona sem alterar a cor da textura do inseto.
 - A luminaria de piso amarela e a arandela azul usam cores diferentes; a
   cupula azul da arandela fica emissiva enquanto sua luz esta ligada.
 - Luzes internas afetam somente objetos internos.

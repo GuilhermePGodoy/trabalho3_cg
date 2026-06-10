@@ -67,6 +67,7 @@ class Application:
         )
         self.objects = create_scene(meshes)
         self.objects_by_name = {obj.name: obj for obj in self.objects}
+        self.lights = create_lights()
         self.firefly_swarm = FireflySwarm(
             [
                 obj
@@ -78,8 +79,12 @@ class Application:
                 for obj in self.objects
                 if obj.name.startswith("brilho_vagalume_")
             ],
+            [
+                light
+                for light in self.lights
+                if light.name.startswith("luz_vagalume_")
+            ],
         )
-        self.lights = create_lights()
         self.renderer = Renderer(self.assets, cubemap)
         glViewport(0, 0, self.width, self.height)
         self.last_frame = glfw.get_time()
@@ -273,14 +278,7 @@ class Application:
             state = "ligada" if self.lighting.ambient_enabled else "desligada"
             print(f"luz ambiente: {state}")
         elif action == glfw.PRESS and key == glfw.KEY_5:
-            swarm_lights = [
-                light
-                for light in self.lights
-                if light.name.startswith("luz_vagalume_")
-            ]
-            enabled = not any(light.enabled for light in swarm_lights)
-            for light in swarm_lights:
-                light.enabled = enabled
+            enabled = self.firefly_swarm.toggle_lights()
             state = "ligadas" if enabled else "desligadas"
             print(f"luzes dos vagalumes: {state}")
         elif action in (glfw.PRESS, glfw.REPEAT):
