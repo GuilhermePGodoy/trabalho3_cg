@@ -164,6 +164,9 @@ class Application:
                 default_texture=texture_path,
                 force_white=force_white,
                 split_by_group=name == "lampada_parede",
+                split_connected_materials=(
+                    {"rocks.002"} if name == "casa" else None
+                ),
             )
         meshes["grama"] = self.assets.create_ground_mesh(
             textures / "piso/grass.jpg"

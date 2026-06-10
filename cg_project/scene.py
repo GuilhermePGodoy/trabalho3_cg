@@ -14,6 +14,7 @@ EXTERIOR = 2
 ALL_SURFACES = 0
 ENTRANCE_SURFACES = 1
 OTHER_SURFACES = 2
+CHIMNEY_PART = "rocks.002:component_1"
 
 
 @dataclass(frozen=True)
@@ -110,6 +111,8 @@ class SceneObject:
     part_tints: dict[str, tuple[float, float, float]] = field(
         default_factory=dict
     )
+    included_parts: set[str] = field(default_factory=set)
+    excluded_parts: set[str] = field(default_factory=set)
     surface_region: int = ALL_SURFACES
     surface_boundary_z: float = 0.0
 
@@ -232,8 +235,22 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             ),
             MATERIALS["casa"],
             INTERIOR,
+            excluded_parts={CHIMNEY_PART},
             surface_region=OTHER_SURFACES,
             surface_boundary_z=-23.5,
+        ),
+        SceneObject(
+            "casa_chamine",
+            meshes["casa"],
+            Transform(
+                angle=270.0,
+                axis=(0.0, 1.0, 0.0),
+                translation=(0.0, -1.0, -30.0),
+                scale=(1.5, 1.5, 1.5),
+            ),
+            MATERIALS["casa"],
+            EXTERIOR,
+            included_parts={CHIMNEY_PART},
         ),
         SceneObject(
             "fogueira",

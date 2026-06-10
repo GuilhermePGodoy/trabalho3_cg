@@ -77,46 +77,101 @@ class AssetManager:
         default_texture: str | Path | None = None,
         force_white: bool = False,
         split_by_group: bool = False,
+        split_connected_materials: set[str] | None = None,
     ) -> Mesh:
         """Carrega um OBJ e escolhe uma textura para cada material usado."""
 
         obj_path = Path(obj_path)
         default_path = Path(default_texture) if default_texture else None
+        split_connected_materials = split_connected_materials or set()
         model = self._parse_obj(obj_path, split_by_group=split_by_group)
         texture_map = self._parse_mtl_textures(model["mtl_path"])
         parts = []
 
         for part_name, vertices in model["parts"].items():
-            first_vertex = len(self._vertex_data) // 8
-            self._vertex_data.extend(vertices)
+            material_name = model["part_materials"][part_name]
+            vertex_groups = [(part_name, vertices)]
+            if material_name in split_connected_materials:
+                components = self._split_connected_components(vertices)
+                vertex_groups = [
+                    (f"{part_name}:component_{index}", component)
+                    for index, component in enumerate(components)
+                ]
 
-            texture_path = None
-            if not force_white:
-                # O MTL fornece apenas map_Kd; seus coeficientes de luz sao ignorados.
-                material_name = model["part_materials"][part_name]
-                mapped_texture = texture_map.get(material_name)
-                if mapped_texture:
-                    candidate = obj_path.parent / os.path.basename(mapped_texture)
-                    if self._is_image(candidate):
-                        texture_path = candidate
-                if texture_path is None and self._is_image(default_path):
-                    texture_path = default_path
+            for rendered_name, rendered_vertices in vertex_groups:
+                first_vertex = len(self._vertex_data) // 8
+                self._vertex_data.extend(rendered_vertices)
 
-            texture_id = (
-                self.white_texture
-                if texture_path is None
-                else self.load_texture(texture_path)
-            )
-            parts.append(
-                MeshPart(
-                    name=part_name,
-                    first_vertex=first_vertex,
-                    vertex_count=len(vertices) // 8,
-                    texture_id=texture_id,
+                texture_path = None
+                if not force_white:
+                    # O MTL fornece apenas map_Kd; seus coeficientes de luz sao ignorados.
+                    mapped_texture = texture_map.get(material_name)
+                    if mapped_texture:
+                        candidate = obj_path.parent / os.path.basename(mapped_texture)
+                        if self._is_image(candidate):
+                            texture_path = candidate
+                    if texture_path is None and self._is_image(default_path):
+                        texture_path = default_path
+
+                texture_id = (
+                    self.white_texture
+                    if texture_path is None
+                    else self.load_texture(texture_path)
                 )
-            )
+                parts.append(
+                    MeshPart(
+                        name=rendered_name,
+                        first_vertex=first_vertex,
+                        vertex_count=len(rendered_vertices) // 8,
+                        texture_id=texture_id,
+                    )
+                )
 
         return Mesh(tuple(parts))
+
+    @staticmethod
+    def _split_connected_components(vertices: array) -> list[array]:
+        """Separa triangulos que nao compartilham nenhuma posicao."""
+
+        triangle_size = 3 * 8
+        triangles = [
+            vertices[offset : offset + triangle_size]
+            for offset in range(0, len(vertices), triangle_size)
+        ]
+        position_to_triangles: dict[tuple[float, float, float], list[int]] = {}
+        for triangle_index, triangle in enumerate(triangles):
+            for vertex_offset in range(0, triangle_size, 8):
+                position = tuple(triangle[vertex_offset : vertex_offset + 3])
+                position_to_triangles.setdefault(position, []).append(
+                    triangle_index
+                )
+
+        components = []
+        visited = set()
+        for start in range(len(triangles)):
+            if start in visited:
+                continue
+
+            pending = [start]
+            visited.add(start)
+            component_indices = []
+            while pending:
+                triangle_index = pending.pop()
+                component_indices.append(triangle_index)
+                triangle = triangles[triangle_index]
+                for vertex_offset in range(0, triangle_size, 8):
+                    position = tuple(triangle[vertex_offset : vertex_offset + 3])
+                    for neighbor in position_to_triangles[position]:
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            pending.append(neighbor)
+
+            component = array("f")
+            for triangle_index in sorted(component_indices):
+                component.extend(triangles[triangle_index])
+            components.append(component)
+
+        return sorted(components, key=len, reverse=True)
 
     def create_ground_mesh(self, texture_path: str | Path) -> Mesh:
         """Cria o piso com UVs repetidos e normal apontando para cima."""

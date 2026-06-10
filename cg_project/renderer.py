@@ -149,6 +149,14 @@ class Renderer:
         )
 
         for part in scene_object.mesh.parts:
+            if (
+                scene_object.included_parts
+                and part.name not in scene_object.included_parts
+            ):
+                continue
+            if part.name in scene_object.excluded_parts:
+                continue
+
             self.main_shader.set_vec3(
                 "textureTint",
                 scene_object.part_tints.get(part.name, (1.0, 1.0, 1.0)),

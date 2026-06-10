@@ -58,7 +58,8 @@ python -c "from cg_project import run; run()"
 - Luzes internas afetam somente objetos internos.
 - A fogueira afeta somente objetos externos.
 - A fachada voltada para a entrada pertence ao exterior; o restante da malha
-  da casa pertence ao interior.
+  da casa pertence ao interior, com excecao da chamine de pedras, que tambem
+  pertence ao exterior.
 - Cada objeto possui coeficientes Phong proprios definidos em `scene.py`.
 - Arquivos MTL sao usados somente para localizar texturas.
 
