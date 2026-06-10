@@ -34,10 +34,11 @@ python -c "from cg_project import run; run()"
 
 | Tecla | Acao |
 |---|---|
-| `1` | Liga/desliga o farol do carro |
+| `1` | Liga/desliga a luz da fogueira |
 | `2` | Liga/desliga a luminaria amarela |
 | `3` | Liga/desliga a luminaria azul |
 | `4` | Liga/desliga a luz ambiente |
+| `5` | Liga/desliga as luzes brancas dos vagalumes |
 | `U` / `J` | Aumenta/diminui a intensidade ambiente |
 | `I` / `K` | Aumenta/diminui a reflexao difusa |
 | `O` / `L` | Aumenta/diminui a reflexao especular |
@@ -48,10 +49,15 @@ python -c "from cg_project import run; run()"
 
 ## Iluminacao
 
-- O farol acompanha o carro, que se move automaticamente no ambiente externo.
+- A fogueira ocupa sua posicao original e emite uma luz alaranjada.
+- Nove vagalumes se movem em trajetorias pseudoaleatorias ao redor de um
+  centroide proximo a fogueira e a raposa. Cada inseto carrega uma fonte
+  branca atenuada, sem alterar a cor de sua textura.
 - Duas luminarias internas usam cores diferentes.
 - Luzes internas afetam somente objetos internos.
-- O farol afeta somente objetos externos.
+- A fogueira afeta somente objetos externos.
+- A fachada voltada para a entrada pertence ao exterior; o restante da malha
+  da casa pertence ao interior.
 - Cada objeto possui coeficientes Phong proprios definidos em `scene.py`.
 - Arquivos MTL sao usados somente para localizar texturas.
 
@@ -63,4 +69,5 @@ python -c "from cg_project import run; run()"
 - `cg_project/renderer.py`: envio de uniforms e desenho.
 - `cg_project/camera.py`: navegacao da camera.
 - `cg_project/shader.py`: compilacao dos shaders.
+- `cg_project/swarm.py`: movimento coeso dos vagalumes.
 - `shaders/`: shaders GLSL 330 core.
