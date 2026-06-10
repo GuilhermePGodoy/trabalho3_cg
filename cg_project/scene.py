@@ -153,7 +153,7 @@ MATERIALS = {
     "casa": Material(0.18, 0.70, 0.15, 24.0),
     "porta": Material(0.18, 0.65, 0.20, 24.0),
     "frango": Material(0.20, 0.70, 0.12, 16.0),
-    "carro": Material(0.15, 0.65, 0.75, 96.0),
+    "fogueira": Material(0.22, 0.70, 0.18, 24.0),
     "cama": Material(0.20, 0.75, 0.08, 12.0),
     "comoda": Material(0.18, 0.65, 0.25, 32.0),
     "taca": Material(0.12, 0.55, 0.95, 128.0),
@@ -207,15 +207,14 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             EXTERIOR,
         ),
         SceneObject(
-            "carro",
-            meshes["carro"],
+            "fogueira",
+            meshes["fogueira"],
             Transform(
-                translation=(-6.0, -1.0, -14.0),
-                scale=(0.01, 0.01, 0.01),
+                translation=(-6.0, -1.0, -16.0),
+                scale=(0.05, 0.05, 0.05),
             ),
-            MATERIALS["carro"],
+            MATERIALS["fogueira"],
             EXTERIOR,
-            {"headlight", "white_light"},
         ),
         SceneObject(
             "frango",
@@ -309,15 +308,15 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
 
 
 def create_lights() -> list[PointLight]:
-    """Cria o farol externo e as duas fontes internas independentes."""
+    """Cria a fogueira externa e as duas fontes internas independentes."""
 
     return [
         PointLight(
-            "farol",
-            (1.0, 0.95, 0.8),
+            "fogueira",
+            (1.0, 0.32, 0.05),
             EXTERIOR,
-            "carro",
-            (0.0, 65.0, 210.0),
+            "fogueira",
+            (0.0, 30.0, 0.0),
         ),
         PointLight(
             "luz_amarela",

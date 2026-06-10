@@ -35,7 +35,6 @@ class Application:
         self.visible = visible
         self.camera = Camera(last_x=width / 2, last_y=height / 2)
         self.lighting = LightingState()
-        self.car_direction = 1.0
         self.delta_time = 0.0
         self.last_frame = 0.0
 
@@ -100,10 +99,10 @@ class Application:
                 models / "casa/T_brightwood_basecolor.png",
                 False,
             ),
-            "carro": (
-                models / "carro/Generic_Old_Car.obj",
-                None,
-                True,
+            "fogueira": (
+                models / "fogueira/Campfire.obj",
+                models / "fogueira/campfire.jpg",
+                False,
             ),
             "frango": (
                 models / "frango/10864_rotisserie_chicken_v2_L3.obj",
@@ -165,7 +164,6 @@ class Application:
                 glfw.poll_events()
 
                 self._process_movement()
-                self._update_car(self.delta_time)
 
                 glClearColor(0.08, 0.10, 0.14, 1.0)
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -183,20 +181,6 @@ class Application:
         finally:
             glfw.destroy_window(self.window)
             glfw.terminate()
-
-    def _update_car(self, delta_time: float) -> None:
-        """Move o carro entre os limites do percurso, independentemente do FPS."""
-
-        car = self.objects_by_name["carro"]
-        x, y, z = car.transform.translation
-        x += self.car_direction * 2.0 * delta_time
-        if x >= 8.0:
-            x = 8.0
-            self.car_direction = -1.0
-        elif x <= -10.0:
-            x = -10.0
-            self.car_direction = 1.0
-        car.transform.translation = (x, y, z)
 
     def _light_positions(self) -> dict[str, np.ndarray]:
         """Calcula em coordenadas de mundo as fontes presas aos objetos."""
