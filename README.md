@@ -1,7 +1,12 @@
-# Computacao Grafica - Projeto 3
+# Computacao Grafica - Projeto 3: Iluminacao
 
 Projeto em Python e OpenGL com iluminacao ambiente, difusa e especular em
 uma cena interna e externa.
+
+## Integrantes
+
+- Bruno Figueiredo Lima - 14562383
+- Guilherme Pascoale Godoy - 14576277
 
 ## Requisitos
 
@@ -19,10 +24,7 @@ pip install -r requirements.txt
 
 ## Execucao
 
-Abra `notebook.ipynb` com o kernel do ambiente virtual e execute as duas
-celulas de codigo.
-
-Tambem e possivel executar diretamente:
+Com o ambiente virtual ativado, execute:
 
 ```bash
 python -c "from cg_project import run; run()"
