@@ -138,6 +138,17 @@ class Application:
                 models / "lampada/Lamp_Porcelan_DIF.png",
                 False,
             ),
+            "lampada_parede": (
+                models
+                / "lampada_parede/Brass Color Wall Sconce Art Deco Lamp.obj",
+                models
+                / (
+                    "lampada_parede/"
+                    "Brass Color Wall Sconce Art Deco Lamp_"
+                    "Brass Color Wall Sconce Art Deco Lamp_BaseColor.png"
+                ),
+                False,
+            ),
             "vagalume": (
                 models / "inseto/uploads_files_5014749_Fly_Low_Poly.obj",
                 models / "inseto/Fly_Tris_Diffuse.png",

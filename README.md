@@ -36,7 +36,7 @@ python -c "from cg_project import run; run()"
 |---|---|
 | `1` | Liga/desliga a luz da fogueira |
 | `2` | Liga/desliga a luminaria amarela |
-| `3` | Liga/desliga a luminaria azul |
+| `3` | Liga/desliga a arandela azul entre as tacas |
 | `4` | Liga/desliga a luz ambiente |
 | `5` | Liga/desliga as luzes brancas dos vagalumes |
 | `U` / `J` | Aumenta/diminui a intensidade ambiente |
@@ -53,7 +53,7 @@ python -c "from cg_project import run; run()"
 - Nove vagalumes se movem em trajetorias pseudoaleatorias ao redor de um
   centroide proximo a fogueira e a raposa. Cada inseto carrega uma fonte
   branca atenuada, sem alterar a cor de sua textura.
-- Duas luminarias internas usam cores diferentes.
+- A luminaria de piso amarela e a arandela azul usam cores diferentes.
 - Luzes internas afetam somente objetos internos.
 - A fogueira afeta somente objetos externos.
 - A fachada voltada para a entrada pertence ao exterior; o restante da malha

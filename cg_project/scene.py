@@ -167,6 +167,7 @@ MATERIALS = {
     "comoda": Material(0.18, 0.65, 0.25, 32.0),
     "taca": Material(0.12, 0.55, 0.95, 128.0),
     "lampada": Material(0.25, 0.60, 0.45, 64.0),
+    "lampada_parede": Material(0.18, 0.55, 0.70, 80.0),
 }
 
 
@@ -319,15 +320,16 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             {"Lamp"},
         ),
         SceneObject(
-            "lampada_azul",
-            meshes["lampada"],
+            "lampada_parede",
+            meshes["lampada_parede"],
             Transform(
-                translation=(-5.5, 3.15, -25.0),
-                scale=(1.5, 1.5, 1.5),
+                angle=-90.0,
+                axis=(0.0, 1.0, 0.0),
+                translation=(-6.8, 5.2, -25.0),
+                scale=(0.05, 0.05, 0.05),
             ),
-            MATERIALS["lampada"],
+            MATERIALS["lampada_parede"],
             INTERIOR,
-            {"Lamp"},
         ),
     ]
 
@@ -370,8 +372,8 @@ def create_lights() -> list[PointLight]:
             "luz_azul",
             (0.2, 0.4, 1.0),
             INTERIOR,
-            "lampada_azul",
-            (0.0, 0.4, 0.0),
+            "lampada_parede",
+            (0.0, 20.5, -3.1),
         ),
     ]
 
