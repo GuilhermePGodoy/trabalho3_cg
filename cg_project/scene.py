@@ -10,6 +10,11 @@ import numpy as np
 INTERIOR = 1
 EXTERIOR = 2
 
+# Regioes usadas para dividir a mesma malha da casa em duas passagens.
+ALL_SURFACES = 0
+ENTRANCE_SURFACES = 1
+OTHER_SURFACES = 2
+
 
 @dataclass(frozen=True)
 class Material:
@@ -102,6 +107,8 @@ class SceneObject:
     material: Material
     group_id: int
     emissive_parts: set[str] = field(default_factory=set)
+    surface_region: int = ALL_SURFACES
+    surface_boundary_z: float = 0.0
 
 
 @dataclass
@@ -197,7 +204,7 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             EXTERIOR,
         ),
         SceneObject(
-            "casa",
+            "casa_externa",
             meshes["casa"],
             Transform(
                 angle=270.0,
@@ -207,6 +214,22 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             ),
             MATERIALS["casa"],
             EXTERIOR,
+            surface_region=ENTRANCE_SURFACES,
+            surface_boundary_z=-23.5,
+        ),
+        SceneObject(
+            "casa_interna",
+            meshes["casa"],
+            Transform(
+                angle=270.0,
+                axis=(0.0, 1.0, 0.0),
+                translation=(0.0, -1.0, -30.0),
+                scale=(1.5, 1.5, 1.5),
+            ),
+            MATERIALS["casa"],
+            INTERIOR,
+            surface_region=OTHER_SURFACES,
+            surface_boundary_z=-23.5,
         ),
         SceneObject(
             "fogueira",

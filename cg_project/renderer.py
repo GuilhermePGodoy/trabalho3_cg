@@ -133,6 +133,10 @@ class Renderer:
 
         self.main_shader.set_mat4("model", scene_object.transform.matrix())
         self.main_shader.set_int("objectGroupID", scene_object.group_id)
+        self.main_shader.set_int("surfaceRegion", scene_object.surface_region)
+        self.main_shader.set_float(
+            "surfaceBoundaryZ", scene_object.surface_boundary_z
+        )
         self._set_material(scene_object.material)
 
         source_light = next(

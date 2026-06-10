@@ -22,6 +22,8 @@ uniform int numLights;
 uniform PointLight lights[MAX_LIGHTS];
 uniform Material material;
 uniform int objectGroupID;
+uniform int surfaceRegion;
+uniform float surfaceBoundaryZ;
 
 uniform bool ambientEnabled;
 uniform float ambientIntensity;
@@ -39,6 +41,17 @@ out vec4 FragColor;
 
 void main() {
     vec3 normal = normalize(out_normal);
+
+    // A casa e desenhada duas vezes, separada por um plano na fachada:
+    // uma passagem para o lado da entrada e outra para o volume interno.
+    bool entranceSide = out_fragPos.z >= surfaceBoundaryZ;
+    if (
+        (surfaceRegion == 1 && !entranceSide)
+        || (surfaceRegion == 2 && entranceSide)
+    ) {
+        discard;
+    }
+
     vec3 viewDir = normalize(viewPos - out_fragPos);
     vec3 ambient = vec3(0.0);
     vec3 diffuseTotal = vec3(0.0);
