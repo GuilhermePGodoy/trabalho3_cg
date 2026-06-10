@@ -1,3 +1,5 @@
+"""Inicializacao da janela, controles e loop principal da aplicacao."""
+
 from pathlib import Path
 
 import glfw
@@ -25,6 +27,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class Application:
+    """Coordena entrada do usuario, atualizacao da cena e renderizacao."""
+
     def __init__(self, width: int = 1280, height: int = 720, visible: bool = True):
         self.width = width
         self.height = height
@@ -41,6 +45,7 @@ class Application:
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        # A janela nasce oculta para que testes possam executar sem piscar na tela.
         glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
         self.window = glfw.create_window(
             width, height, "Computacao Grafica - Projeto 3", None, None
@@ -74,6 +79,8 @@ class Application:
         self._print_controls()
 
     def _load_meshes(self) -> dict:
+        """Carrega modelos e texturas antes de finalizar o VBO compartilhado."""
+
         models = PROJECT_ROOT / "assets/models"
         textures = PROJECT_ROOT / "assets/textures"
 
@@ -144,6 +151,8 @@ class Application:
         return meshes
 
     def run(self, max_frames: int | None = None) -> None:
+        """Executa o loop de atualizacao e desenho ate a janela ser fechada."""
+
         frame_count = 0
         try:
             while not glfw.window_should_close(self.window):
@@ -176,6 +185,8 @@ class Application:
             glfw.terminate()
 
     def _update_car(self, delta_time: float) -> None:
+        """Move o carro entre os limites do percurso, independentemente do FPS."""
+
         car = self.objects_by_name["carro"]
         x, y, z = car.transform.translation
         x += self.car_direction * 2.0 * delta_time
@@ -188,6 +199,8 @@ class Application:
         car.transform.translation = (x, y, z)
 
     def _light_positions(self) -> dict[str, np.ndarray]:
+        """Calcula em coordenadas de mundo as fontes presas aos objetos."""
+
         return {
             light.name: self.objects_by_name[
                 light.source_object
@@ -196,6 +209,8 @@ class Application:
         }
 
     def _process_movement(self) -> None:
+        """Aplica movimento continuo da camera para as teclas pressionadas."""
+
         speed = 8.0 * self.delta_time
         movement = (
             (glfw.KEY_W, "forward"),
@@ -208,12 +223,16 @@ class Application:
                 self.camera.move(direction, speed)
 
     def _register_callbacks(self) -> None:
+        """Registra os callbacks de teclado, janela, mouse e scroll."""
+
         glfw.set_key_callback(self.window, self._on_key)
         glfw.set_framebuffer_size_callback(self.window, self._on_resize)
         glfw.set_cursor_pos_callback(self.window, self._on_mouse)
         glfw.set_scroll_callback(self.window, self._on_scroll)
 
     def _on_key(self, window, key, scancode, action, mods) -> None:
+        """Alterna luzes e ajusta os termos de iluminacao pelo teclado."""
+
         del scancode, mods
         if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
             glfw.set_window_should_close(window, True)
@@ -280,4 +299,6 @@ class Application:
 
 
 def run(max_frames: int | None = None, visible: bool = True) -> None:
+    """Ponto de entrada publico do projeto."""
+
     Application(visible=visible).run(max_frames=max_frames)

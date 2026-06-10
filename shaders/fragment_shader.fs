@@ -44,14 +44,17 @@ void main() {
     vec3 specularTotal = vec3(0.0);
 
     if (ambientEnabled) {
+        // A parcela ambiente independe das fontes pontuais.
         ambient = vec3(ambientIntensity * material.ka);
     }
 
     for (int i = 0; i < numLights; i++) {
+        // O groupID isola as iluminacoes dos ambientes interno e externo.
         if (!lights[i].enabled || lights[i].groupID != objectGroupID) {
             continue;
         }
 
+        // Reflexao difusa de Lambert.
         vec3 lightDir = normalize(lights[i].position - out_fragPos);
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
         diffuseTotal += (
@@ -61,6 +64,7 @@ void main() {
             * diffuseFactor
         );
 
+        // Reflexao especular de Phong.
         vec3 reflectDir = reflect(-lightDir, normal);
         float specularFactor = pow(
             max(dot(viewDir, reflectDir), 0.0),
@@ -74,6 +78,7 @@ void main() {
         );
     }
 
+    // A textura modula ambiente e difusa; especular e emissao somam luz.
     vec4 textureColor = texture(samplerTexture, out_texture);
     vec3 finalColor = (
         (ambient + diffuseTotal) * textureColor.rgb

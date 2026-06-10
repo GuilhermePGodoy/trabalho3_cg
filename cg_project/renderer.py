@@ -1,3 +1,5 @@
+"""Renderizacao da cena principal e da skybox com OpenGL moderno."""
+
 import ctypes
 from pathlib import Path
 
@@ -54,6 +56,8 @@ SKYBOX_VERTICES = np.array(
 
 
 class Renderer:
+    """Envia uniforms e desenha objetos, partes emissivas e skybox."""
+
     def __init__(self, asset_manager, cubemap_texture: int):
         self.assets = asset_manager
         self.cubemap_texture = cubemap_texture
@@ -83,9 +87,12 @@ class Renderer:
         width: int,
         height: int,
     ) -> None:
+        """Desenha um quadro completo usando o estado atual da aplicacao."""
+
         view = camera.view_matrix()
         projection = camera.projection_matrix(width, height)
 
+        # Estes uniforms sao comuns a todos os objetos e mudam uma vez por quadro.
         self.main_shader.use()
         self.main_shader.set_mat4("view", view)
         self.main_shader.set_mat4("projection", projection)
@@ -119,6 +126,8 @@ class Renderer:
     def _draw_object(
         self, scene_object: SceneObject, lights: list[PointLight]
     ) -> None:
+        """Configura transformacao/material e desenha as partes de um objeto."""
+
         self.main_shader.set_mat4("model", scene_object.transform.matrix())
         self.main_shader.set_int("objectGroupID", scene_object.group_id)
         self._set_material(scene_object.material)
@@ -133,6 +142,7 @@ class Renderer:
         )
 
         for part in scene_object.mesh.parts:
+            # Somente a geometria que representa uma lampada acesa emite cor.
             emission = (
                 source_light.color
                 if source_light and part.name in scene_object.emissive_parts
@@ -151,6 +161,9 @@ class Renderer:
         self.main_shader.set_float("material.opacity", material.opacity)
 
     def _draw_skybox(self, view, projection) -> None:
+        """Desenha o cubemap no fundo sem encobrir a geometria da cena."""
+
+        # LEQUAL permite que a skybox passe no limite mais distante do depth buffer.
         glDepthFunc(GL_LEQUAL)
         self.skybox_shader.use()
         self.skybox_shader.set_mat4("view", view)
@@ -164,6 +177,8 @@ class Renderer:
 
     @staticmethod
     def _create_skybox_buffers() -> tuple[int, int]:
+        """Cria um cubo unitario usado para amostrar o cubemap."""
+
         vao = glGenVertexArrays(1)
         vbo = glGenBuffers(1)
         glBindVertexArray(vao)

@@ -1,15 +1,20 @@
+"""Definicao dos objetos, transformacoes, materiais e luzes da cena."""
+
 from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
 
 
+# Os grupos impedem que uma fonte interna ilumine o exterior e vice-versa.
 INTERIOR = 1
 EXTERIOR = 2
 
 
 @dataclass(frozen=True)
 class Material:
+    """Coeficientes do modelo de iluminacao Phong de um objeto."""
+
     ka: float
     kd: float
     ks: float
@@ -19,16 +24,21 @@ class Material:
 
 @dataclass
 class Transform:
+    """Transformacao local de um objeto no mundo."""
+
     angle: float = 0.0
     axis: tuple[float, float, float] = (0.0, 1.0, 0.0)
     translation: tuple[float, float, float] = (0.0, 0.0, 0.0)
     scale: tuple[float, float, float] = (1.0, 1.0, 1.0)
 
     def matrix(self) -> np.ndarray:
+        """Monta a matriz de modelo na ordem translacao, rotacao e escala."""
+
         angle = np.radians(self.angle)
         x, y, z = self.axis
         axis_length = np.linalg.norm(self.axis)
 
+        # Formula de Rodrigues para rotacao em torno de um eixo arbitrario.
         rotation = np.identity(4, dtype=np.float32)
         if angle != 0.0 and axis_length > 0.0:
             x, y, z = np.array(self.axis, dtype=np.float32) / axis_length
@@ -76,12 +86,16 @@ class Transform:
         return translation @ rotation @ scale
 
     def transform_point(self, point: tuple[float, float, float]) -> np.ndarray:
+        """Converte um ponto local para coordenadas de mundo."""
+
         local_point = np.array([*point, 1.0], dtype=np.float32)
         return (self.matrix() @ local_point)[:3]
 
 
 @dataclass
 class SceneObject:
+    """Objeto desenhavel com malha, material e grupo de iluminacao."""
+
     name: str
     mesh: Any
     transform: Transform
@@ -92,6 +106,8 @@ class SceneObject:
 
 @dataclass
 class PointLight:
+    """Fonte pontual presa a uma posicao local de um objeto da cena."""
+
     name: str
     color: tuple[float, float, float]
     group_id: int
@@ -102,25 +118,34 @@ class PointLight:
 
 @dataclass
 class LightingState:
+    """Estado global controlado pelo teclado durante a execucao."""
+
     ambient_enabled: bool = True
     ambient_intensity: float = 0.25
     diffuse_scale: float = 1.0
     specular_scale: float = 1.0
 
     def change_ambient(self, amount: float) -> None:
+        """Altera a intensidade ambiente mantendo-a no intervalo aceito."""
+
         self.ambient_intensity = float(
             np.clip(self.ambient_intensity + amount, 0.0, 1.0)
         )
 
     def change_diffuse(self, amount: float) -> None:
+        """Altera o multiplicador difuso sem substituir o kd dos objetos."""
+
         self.diffuse_scale = float(np.clip(self.diffuse_scale + amount, 0.0, 2.0))
 
     def change_specular(self, amount: float) -> None:
+        """Altera o multiplicador especular sem substituir o ks dos objetos."""
+
         self.specular_scale = float(
             np.clip(self.specular_scale + amount, 0.0, 2.0)
         )
 
 
+# Parametros definidos no codigo; valores de iluminacao dos MTL nao sao usados.
 MATERIALS = {
     "grama": Material(0.25, 0.85, 0.02, 4.0),
     "raposa": Material(0.20, 0.75, 0.10, 12.0),
@@ -137,6 +162,8 @@ MATERIALS = {
 
 
 def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
+    """Associa as malhas carregadas aos objetos e posicionamentos da cena."""
+
     return [
         SceneObject(
             "grama",
@@ -282,6 +309,8 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
 
 
 def create_lights() -> list[PointLight]:
+    """Cria o farol externo e as duas fontes internas independentes."""
+
     return [
         PointLight(
             "farol",

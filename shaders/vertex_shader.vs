@@ -16,5 +16,7 @@ void main(){
     gl_Position = projection * view * model * vec4(position, 1.0);
     out_texture = texture_coord;
     out_fragPos = vec3(model * vec4(position, 1.0));
+
+    // A normal matrix remove translacao e corrige escalas nao uniformes.
     out_normal = mat3(transpose(inverse(model))) * normals;
 }

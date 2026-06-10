@@ -1,3 +1,5 @@
+"""Compilacao de shaders GLSL e envio de uniforms ao programa OpenGL."""
+
 from pathlib import Path
 
 from OpenGL.GL import (
@@ -26,6 +28,8 @@ from OpenGL.GL import (
 
 
 class Shader:
+    """Encapsula um programa formado por vertex e fragment shaders."""
+
     def __init__(self, vertex_path: str | Path, fragment_path: str | Path):
         vertex = self._compile(vertex_path, GL_VERTEX_SHADER)
         fragment = self._compile(fragment_path, GL_FRAGMENT_SHADER)
@@ -39,11 +43,14 @@ class Shader:
             log = glGetProgramInfoLog(self.id).decode(errors="replace")
             raise RuntimeError(f"Erro ao vincular shaders:\n{log}")
 
+        # Apos o link, o programa mantem o codigo e os shaders podem ser liberados.
         glDeleteShader(vertex)
         glDeleteShader(fragment)
 
     @staticmethod
     def _compile(path: str | Path, shader_type: int) -> int:
+        """Compila um arquivo GLSL e apresenta o log em caso de erro."""
+
         path = Path(path)
         shader = glCreateShader(shader_type)
         glShaderSource(shader, path.read_text(encoding="utf-8"))

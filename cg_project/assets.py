@@ -1,3 +1,5 @@
+"""Carregamento de modelos OBJ, texturas 2D e cubemap da aplicacao."""
+
 import ctypes
 import os
 from array import array
@@ -44,6 +46,8 @@ from PIL import Image
 
 @dataclass(frozen=True)
 class MeshPart:
+    """Trecho de uma malha que compartilha material e textura."""
+
     name: str
     first_vertex: int
     vertex_count: int
@@ -52,10 +56,14 @@ class MeshPart:
 
 @dataclass(frozen=True)
 class Mesh:
+    """Conjunto de partes armazenadas no VBO global."""
+
     parts: tuple[MeshPart, ...]
 
 
 class AssetManager:
+    """Concentra recursos OpenGL e evita recarregar texturas repetidas."""
+
     def __init__(self):
         self._vertex_data = array("f")
         self._texture_cache: dict[Path, int] = {}
@@ -69,6 +77,8 @@ class AssetManager:
         default_texture: str | Path | None = None,
         force_white: bool = False,
     ) -> Mesh:
+        """Carrega um OBJ e escolhe uma textura para cada material usado."""
+
         obj_path = Path(obj_path)
         default_path = Path(default_texture) if default_texture else None
         model = self._parse_obj(obj_path)
@@ -81,6 +91,7 @@ class AssetManager:
 
             texture_path = None
             if not force_white:
+                # O MTL fornece apenas map_Kd; seus coeficientes de luz sao ignorados.
                 mapped_texture = texture_map.get(material_name)
                 if mapped_texture:
                     candidate = obj_path.parent / os.path.basename(mapped_texture)
@@ -106,6 +117,8 @@ class AssetManager:
         return Mesh(tuple(parts))
 
     def create_ground_mesh(self, texture_path: str | Path) -> Mesh:
+        """Cria o piso com UVs repetidos e normal apontando para cima."""
+
         data = (
             (-0.5, 0.0, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0),
             (0.5, 0.0, -0.5, 100.0, 0.0, 0.0, 1.0, 0.0),
@@ -126,6 +139,8 @@ class AssetManager:
         return Mesh((part,))
 
     def finalize_geometry(self) -> None:
+        """Envia todas as malhas para um unico VBO e configura seus atributos."""
+
         if self.vao is not None:
             return
 
@@ -136,6 +151,7 @@ class AssetManager:
         glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
+        # Layout intercalado: posicao (3), UV (2) e normal (3) floats.
         stride = 8 * 4
         glEnableVertexAttribArray(0)
         glVertexAttribPointer(0, 3, GL_FLOAT, False, stride, None)
@@ -153,6 +169,8 @@ class AssetManager:
 
     @property
     def white_texture(self) -> int:
+        """Retorna uma textura neutra para partes sem imagem valida."""
+
         if self._white_texture is None:
             self._white_texture = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self._white_texture)
@@ -172,6 +190,8 @@ class AssetManager:
         return self._white_texture
 
     def load_texture(self, path: str | Path) -> int:
+        """Carrega uma textura 2D, gera mipmaps e guarda seu ID em cache."""
+
         path = Path(path).resolve()
         if path in self._texture_cache:
             return self._texture_cache[path]
@@ -180,7 +200,7 @@ class AssetManager:
         glBindTexture(GL_TEXTURE_2D, texture_id)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         with Image.open(path) as image:
-            # Match the bottom-up row order used by the original loader.
+            # OpenGL e Pillow usam origens verticais opostas para as imagens.
             image = image.convert("RGBA").transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             data = np.asarray(image, dtype=np.uint8)
             glTexImage2D(
@@ -201,6 +221,8 @@ class AssetManager:
 
     @staticmethod
     def load_cubemap_cross(path: str | Path) -> int:
+        """Recorta uma imagem em cruz nas seis faces de um cubemap."""
+
         texture_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
@@ -208,6 +230,8 @@ class AssetManager:
         with Image.open(path) as source:
             source = source.convert("RGBA")
             face_size = source.width // 4
+            # Ordem exigida por GL_TEXTURE_CUBE_MAP_POSITIVE_X: +X, -X, +Y,
+            # -Y, +Z e -Z.
             offsets = ((2, 1), (0, 1), (1, 0), (1, 2), (1, 1), (3, 1))
             for index, (column, row) in enumerate(offsets):
                 left = column * face_size
@@ -256,6 +280,8 @@ class AssetManager:
 
     @staticmethod
     def _parse_mtl_textures(mtl_path: Path | None) -> dict[str, str]:
+        """Le somente nomes de materiais e seus mapas difusos map_Kd."""
+
         if mtl_path is None or not mtl_path.exists():
             return {}
 
@@ -274,6 +300,8 @@ class AssetManager:
 
     @staticmethod
     def _parse_obj(path: Path) -> dict:
+        """Converte faces OBJ em vertices intercalados separados por material."""
+
         positions = []
         texture_coords = []
         normals = []
@@ -307,6 +335,7 @@ class AssetManager:
                         for token in values[1:]
                     ]
                     bucket = parts.setdefault(material_name, array("f"))
+                    # Triangulacao em leque permite faces com tres ou mais vertices.
                     for index in range(1, len(face) - 1):
                         triangle = (face[0], face[index], face[index + 1])
                         needs_face_normal = any(
@@ -348,6 +377,8 @@ class AssetManager:
 
     @staticmethod
     def _parse_face_vertex(token: str) -> tuple[int, int | None, int | None]:
+        """Separa um indice OBJ no formato vertice/uv/normal."""
+
         components = token.split("/")
         vertex = int(components[0])
         uv = int(components[1]) if len(components) > 1 and components[1] else None
@@ -358,10 +389,14 @@ class AssetManager:
 
     @staticmethod
     def _resolve_index(index: int, length: int) -> int:
+        """Converte indices OBJ positivos ou relativos em indices Python."""
+
         return index - 1 if index > 0 else length + index
 
     @staticmethod
     def _face_normal(triangle, positions) -> tuple[float, float, float]:
+        """Calcula uma normal geometrica quando o OBJ nao fornece uma."""
+
         points = []
         for vertex_index, _, _ in triangle:
             points.append(

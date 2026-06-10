@@ -1,3 +1,5 @@
+"""Camera livre controlada por teclado, mouse e scroll."""
+
 from dataclasses import dataclass, field
 
 import glm
@@ -6,6 +8,8 @@ import numpy as np
 
 @dataclass
 class Camera:
+    """Mantem a pose da camera e produz as matrizes view/projection."""
+
     position: glm.vec3 = field(
         default_factory=lambda: glm.vec3(0.0, 8.0, 3.0)
     )
@@ -21,12 +25,16 @@ class Camera:
     last_y: float = 360.0
 
     def view_matrix(self) -> np.ndarray:
+        """Retorna a matriz que transforma o mundo para o espaco da camera."""
+
         return np.array(
             glm.lookAt(self.position, self.position + self.front, self.up),
             dtype=np.float32,
         )
 
     def projection_matrix(self, width: int, height: int) -> np.ndarray:
+        """Cria a projecao perspectiva usando o campo de visao atual."""
+
         aspect = width / max(height, 1)
         return np.array(
             glm.perspective(glm.radians(self.fov), aspect, 0.1, 100.0),
@@ -34,6 +42,8 @@ class Camera:
         )
 
     def move(self, direction: str, amount: float) -> None:
+        """Desloca a camera nos eixos frontal ou lateral."""
+
         right = glm.normalize(glm.cross(self.front, self.up))
         if direction == "forward":
             self.position += amount * self.front
@@ -46,7 +56,10 @@ class Camera:
         self.position.y = max(-0.8, self.position.y)
 
     def look(self, xpos: float, ypos: float, sensitivity: float = 0.1) -> None:
+        """Converte o deslocamento do mouse em yaw, pitch e vetor frontal."""
+
         if self.first_mouse:
+            # A primeira amostra apenas inicializa a referencia do cursor.
             self.last_x = xpos
             self.last_y = ypos
             self.first_mouse = False
@@ -66,4 +79,6 @@ class Camera:
         self.front = glm.normalize(front)
 
     def zoom(self, yoffset: float) -> None:
+        """Altera o campo de visao sem permitir projecoes degeneradas."""
+
         self.fov = float(np.clip(self.fov - yoffset, 1.0, 45.0))
