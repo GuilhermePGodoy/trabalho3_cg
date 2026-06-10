@@ -180,7 +180,8 @@ class AssetManager:
         glBindTexture(GL_TEXTURE_2D, texture_id)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         with Image.open(path) as image:
-            image = image.convert("RGBA")
+            # Match the bottom-up row order used by the original loader.
+            image = image.convert("RGBA").transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             data = np.asarray(image, dtype=np.uint8)
             glTexImage2D(
                 GL_TEXTURE_2D,
