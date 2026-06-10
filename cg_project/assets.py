@@ -1,6 +1,7 @@
 """Carregamento de modelos OBJ, texturas 2D e cubemap da aplicacao."""
 
 import ctypes
+import math
 import os
 from array import array
 from collections import OrderedDict
@@ -192,6 +193,50 @@ class AssetManager:
             first_vertex,
             len(data),
             self.load_texture(texture_path),
+        )
+        return Mesh((part,))
+
+    def create_sphere_mesh(
+        self,
+        part_name: str,
+        latitude_segments: int = 8,
+        longitude_segments: int = 12,
+    ) -> Mesh:
+        """Cria uma esfera simples para representar pequenos emissores."""
+
+        first_vertex = len(self._vertex_data) // 8
+        vertex_count = 0
+
+        def append_vertex(latitude: int, longitude: int) -> None:
+            nonlocal vertex_count
+            vertical_angle = math.pi * latitude / latitude_segments
+            horizontal_angle = (
+                2.0 * math.pi * longitude / longitude_segments
+            )
+            x = math.sin(vertical_angle) * math.cos(horizontal_angle)
+            y = math.cos(vertical_angle)
+            z = math.sin(vertical_angle) * math.sin(horizontal_angle)
+            u = longitude / longitude_segments
+            v = latitude / latitude_segments
+            self._vertex_data.extend((x, y, z, u, v, x, y, z))
+            vertex_count += 1
+
+        for latitude in range(latitude_segments):
+            for longitude in range(longitude_segments):
+                next_longitude = longitude + 1
+                append_vertex(latitude, longitude)
+                append_vertex(latitude + 1, longitude)
+                append_vertex(latitude + 1, next_longitude)
+
+                append_vertex(latitude, longitude)
+                append_vertex(latitude + 1, next_longitude)
+                append_vertex(latitude, next_longitude)
+
+        part = MeshPart(
+            part_name,
+            first_vertex,
+            vertex_count,
+            self.white_texture,
         )
         return Mesh((part,))
 

@@ -12,6 +12,7 @@ class FireflySwarm:
     """Move varios insetos em trajetorias independentes ao redor de um centroide."""
 
     members: list[SceneObject]
+    glows: list[SceneObject]
     origin: tuple[float, float, float] = (-0.5, 1.25, -16.0)
     seed: int = 2026
     elapsed: float = 0.0
@@ -21,6 +22,9 @@ class FireflySwarm:
     _phases: np.ndarray = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
+        if len(self.members) != len(self.glows):
+            raise ValueError("Cada vagalume deve possuir uma barriga luminosa")
+
         rng = np.random.default_rng(self.seed)
         count = len(self.members)
 
@@ -65,3 +69,10 @@ class FireflySwarm:
         for index, (member, offset) in enumerate(zip(self.members, offsets)):
             member.transform.translation = tuple(self.centroid + offset)
             member.transform.angle = (self.elapsed * (35.0 + index * 7.0)) % 360.0
+
+            glow = self.glows[index]
+            # O eixo -Z aponta para o abdomen traseiro do modelo do inseto.
+            glow.transform.translation = tuple(
+                member.transform.transform_point((0.0, 0.0022, -0.00355))
+            )
+            glow.transform.angle = member.transform.angle

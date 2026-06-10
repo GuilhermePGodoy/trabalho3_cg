@@ -15,6 +15,7 @@ ALL_SURFACES = 0
 ENTRANCE_SURFACES = 1
 OTHER_SURFACES = 2
 CHIMNEY_PART = "rocks.002:component_1"
+FIREFLY_GLOW_PART = "firefly_glow"
 
 
 @dataclass(frozen=True)
@@ -169,6 +170,7 @@ MATERIALS = {
     "frango": Material(0.20, 0.70, 0.12, 16.0),
     "fogueira": Material(0.22, 0.70, 0.18, 24.0),
     "vagalume": Material(0.45, 0.75, 0.30, 32.0),
+    "brilho_vagalume": Material(0.0, 0.0, 0.0, 1.0),
     "cama": Material(0.20, 0.75, 0.08, 12.0),
     "comoda": Material(0.18, 0.65, 0.25, 32.0),
     "taca": Material(0.12, 0.55, 0.95, 128.0),
@@ -374,6 +376,16 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
                 EXTERIOR,
             )
         )
+        objects.append(
+            SceneObject(
+                f"brilho_vagalume_{index + 1}",
+                meshes["brilho_vagalume"],
+                Transform(scale=(0.018, 0.015, 0.022)),
+                MATERIALS["brilho_vagalume"],
+                EXTERIOR,
+                emissive_parts={FIREFLY_GLOW_PART},
+            )
+        )
 
     return objects
 
@@ -411,8 +423,8 @@ def create_lights() -> list[PointLight]:
                 f"luz_vagalume_{index + 1}",
                 (1.2, 1.2, 1.2),
                 EXTERIOR,
-                f"vagalume_{index + 1}",
-                (0.0, 0.002, 0.0),
+                f"brilho_vagalume_{index + 1}",
+                (0.0, 0.0, 0.0),
                 attenuation=(1.0, 0.35, 0.44),
             )
         )

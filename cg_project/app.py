@@ -68,7 +68,16 @@ class Application:
         self.objects = create_scene(meshes)
         self.objects_by_name = {obj.name: obj for obj in self.objects}
         self.firefly_swarm = FireflySwarm(
-            [obj for obj in self.objects if obj.name.startswith("vagalume_")]
+            [
+                obj
+                for obj in self.objects
+                if obj.name.startswith("vagalume_")
+            ],
+            [
+                obj
+                for obj in self.objects
+                if obj.name.startswith("brilho_vagalume_")
+            ],
         )
         self.lights = create_lights()
         self.renderer = Renderer(self.assets, cubemap)
@@ -170,6 +179,9 @@ class Application:
             )
         meshes["grama"] = self.assets.create_ground_mesh(
             textures / "piso/grass.jpg"
+        )
+        meshes["brilho_vagalume"] = self.assets.create_sphere_mesh(
+            "firefly_glow"
         )
         return meshes
 
