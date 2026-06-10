@@ -1,4 +1,5 @@
 import ctypes
+from pathlib import Path
 
 import numpy as np
 from OpenGL.GL import (
@@ -30,6 +31,9 @@ from .scene import LightingState, Material, PointLight, SceneObject
 from .shader import Shader
 
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
 SKYBOX_VERTICES = np.array(
     [
         -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, -1.0,
@@ -54,9 +58,13 @@ class Renderer:
         self.assets = asset_manager
         self.cubemap_texture = cubemap_texture
         self.main_shader = Shader(
-            "shaders/vertex_shader.vs", "shaders/fragment_shader.fs"
+            PROJECT_ROOT / "shaders/vertex_shader.vs",
+            PROJECT_ROOT / "shaders/fragment_shader.fs",
         )
-        self.skybox_shader = Shader("shaders/skybox.vs", "shaders/skybox.fs")
+        self.skybox_shader = Shader(
+            PROJECT_ROOT / "shaders/skybox.vs",
+            PROJECT_ROOT / "shaders/skybox.fs",
+        )
         self.skybox_vao, self.skybox_vbo = self._create_skybox_buffers()
 
         glEnable(GL_DEPTH_TEST)

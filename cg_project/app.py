@@ -1,0 +1,281 @@
+from pathlib import Path
+
+import glfw
+import numpy as np
+from OpenGL.GL import (
+    GL_BLEND,
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_SRC_ALPHA,
+    glBlendFunc,
+    glClear,
+    glClearColor,
+    glEnable,
+    glViewport,
+)
+
+from .assets import AssetManager
+from .camera import Camera
+from .renderer import Renderer
+from .scene import LightingState, create_lights, create_scene
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+class Application:
+    def __init__(self, width: int = 1280, height: int = 720, visible: bool = True):
+        self.width = width
+        self.height = height
+        self.visible = visible
+        self.camera = Camera(last_x=width / 2, last_y=height / 2)
+        self.lighting = LightingState()
+        self.car_direction = 1.0
+        self.delta_time = 0.0
+        self.last_frame = 0.0
+
+        if not glfw.init():
+            raise RuntimeError("Nao foi possivel inicializar o GLFW")
+
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+        glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
+        self.window = glfw.create_window(
+            width, height, "Computacao Grafica - Projeto 3", None, None
+        )
+        if self.window is None:
+            glfw.terminate()
+            raise RuntimeError("Nao foi possivel criar a janela GLFW")
+
+        glfw.make_context_current(self.window)
+        self._register_callbacks()
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        self.assets = AssetManager()
+        meshes = self._load_meshes()
+        self.assets.finalize_geometry()
+        cubemap = self.assets.load_cubemap_cross(
+            PROJECT_ROOT / "assets/textures/skybox/ceu_skybox.jpg"
+        )
+        self.objects = create_scene(meshes)
+        self.objects_by_name = {obj.name: obj for obj in self.objects}
+        self.lights = create_lights()
+        self.renderer = Renderer(self.assets, cubemap)
+
+        if visible:
+            glfw.show_window(self.window)
+            glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+
+        self._print_controls()
+
+    def _load_meshes(self) -> dict:
+        models = PROJECT_ROOT / "assets/models"
+        textures = PROJECT_ROOT / "assets/textures"
+
+        specifications = {
+            "raposa": (
+                models / "raposa/13577_Tibetan_Hill_Fox_v1_L3.obj",
+                models / "raposa/Tibetan_Hill_Fox_dif.jpg",
+                False,
+            ),
+            "arvore": (
+                models / "arvores/birch_tree.obj",
+                models / "arvores/tree_bark_65102.jpg",
+                False,
+            ),
+            "casa": (
+                models / "casa/midpoly_town_house_01.obj",
+                models / "casa/T_brightwood_basecolor.png",
+                False,
+            ),
+            "carro": (
+                models / "carro/Generic_Old_Car.obj",
+                None,
+                True,
+            ),
+            "frango": (
+                models / "frango/10864_rotisserie_chicken_v2_L3.obj",
+                models / "frango/chicken.jpg",
+                False,
+            ),
+            "porta": (
+                models / "porta/aporta.obj",
+                models / "porta/T_brightwood_basecolor.png",
+                False,
+            ),
+            "cama": (
+                models / "cama/bed.obj",
+                models / "cama/bed_d.png",
+                False,
+            ),
+            "comoda": (
+                models / "comoda/eb_dresser_01.obj",
+                models / "comoda/eb_dresser_01_c.png",
+                False,
+            ),
+            "taca": (
+                models / "libertadores/copa_libertadores_2021.obj",
+                models / "libertadores/Material_002_baseColor.png",
+                False,
+            ),
+            "lampada": (
+                models / "lampada/lampada.obj",
+                models / "lampada/Lamp_Porcelan_DIF.png",
+                False,
+            ),
+        }
+
+        meshes = {}
+        for name, (obj_path, texture_path, force_white) in specifications.items():
+            print(f"Carregando {name}...")
+            meshes[name] = self.assets.load_mesh(
+                obj_path,
+                default_texture=texture_path,
+                force_white=force_white,
+            )
+        meshes["grama"] = self.assets.create_ground_mesh(
+            textures / "piso/grass.jpg"
+        )
+        return meshes
+
+    def run(self, max_frames: int | None = None) -> None:
+        frame_count = 0
+        try:
+            while not glfw.window_should_close(self.window):
+                if max_frames is not None and frame_count >= max_frames:
+                    break
+
+                current_frame = glfw.get_time()
+                self.delta_time = current_frame - self.last_frame
+                self.last_frame = current_frame
+                glfw.poll_events()
+
+                self._process_movement()
+                self._update_car(self.delta_time)
+
+                glClearColor(0.08, 0.10, 0.14, 1.0)
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+                self.renderer.draw(
+                    self.objects,
+                    self.lights,
+                    self._light_positions(),
+                    self.lighting,
+                    self.camera,
+                    self.width,
+                    self.height,
+                )
+                glfw.swap_buffers(self.window)
+                frame_count += 1
+        finally:
+            glfw.destroy_window(self.window)
+            glfw.terminate()
+
+    def _update_car(self, delta_time: float) -> None:
+        car = self.objects_by_name["carro"]
+        x, y, z = car.transform.translation
+        x += self.car_direction * 2.0 * delta_time
+        if x >= 8.0:
+            x = 8.0
+            self.car_direction = -1.0
+        elif x <= -10.0:
+            x = -10.0
+            self.car_direction = 1.0
+        car.transform.translation = (x, y, z)
+
+    def _light_positions(self) -> dict[str, np.ndarray]:
+        return {
+            light.name: self.objects_by_name[
+                light.source_object
+            ].transform.transform_point(light.local_position)
+            for light in self.lights
+        }
+
+    def _process_movement(self) -> None:
+        speed = 8.0 * self.delta_time
+        movement = (
+            (glfw.KEY_W, "forward"),
+            (glfw.KEY_S, "backward"),
+            (glfw.KEY_A, "left"),
+            (glfw.KEY_D, "right"),
+        )
+        for key, direction in movement:
+            if glfw.get_key(self.window, key) == glfw.PRESS:
+                self.camera.move(direction, speed)
+
+    def _register_callbacks(self) -> None:
+        glfw.set_key_callback(self.window, self._on_key)
+        glfw.set_framebuffer_size_callback(self.window, self._on_resize)
+        glfw.set_cursor_pos_callback(self.window, self._on_mouse)
+        glfw.set_scroll_callback(self.window, self._on_scroll)
+
+    def _on_key(self, window, key, scancode, action, mods) -> None:
+        del scancode, mods
+        if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
+            glfw.set_window_should_close(window, True)
+            return
+
+        if action == glfw.PRESS and key in (
+            glfw.KEY_1,
+            glfw.KEY_2,
+            glfw.KEY_3,
+        ):
+            light = self.lights[key - glfw.KEY_1]
+            light.enabled = not light.enabled
+            state = "ligada" if light.enabled else "desligada"
+            print(f"{light.name}: {state}")
+        elif action == glfw.PRESS and key == glfw.KEY_4:
+            self.lighting.ambient_enabled = not self.lighting.ambient_enabled
+            state = "ligada" if self.lighting.ambient_enabled else "desligada"
+            print(f"luz ambiente: {state}")
+        elif action in (glfw.PRESS, glfw.REPEAT):
+            if key == glfw.KEY_U:
+                self.lighting.change_ambient(0.05)
+            elif key == glfw.KEY_J:
+                self.lighting.change_ambient(-0.05)
+            elif key == glfw.KEY_I:
+                self.lighting.change_diffuse(0.1)
+            elif key == glfw.KEY_K:
+                self.lighting.change_diffuse(-0.1)
+            elif key == glfw.KEY_O:
+                self.lighting.change_specular(0.1)
+            elif key == glfw.KEY_L:
+                self.lighting.change_specular(-0.1)
+            else:
+                return
+            self._print_lighting()
+
+    def _on_resize(self, window, width: int, height: int) -> None:
+        del window
+        self.width = max(width, 1)
+        self.height = max(height, 1)
+        glViewport(0, 0, self.width, self.height)
+
+    def _on_mouse(self, window, xpos: float, ypos: float) -> None:
+        del window
+        self.camera.look(xpos, ypos)
+
+    def _on_scroll(self, window, xoffset: float, yoffset: float) -> None:
+        del window, xoffset
+        self.camera.zoom(yoffset)
+
+    def _print_lighting(self) -> None:
+        print(
+            "iluminacao: "
+            f"ambiente={self.lighting.ambient_intensity:.2f}, "
+            f"difusa={self.lighting.diffuse_scale:.2f}, "
+            f"especular={self.lighting.specular_scale:.2f}"
+        )
+
+    @staticmethod
+    def _print_controls() -> None:
+        print(
+            "Controles: 1/2/3 luzes, 4 ambiente, "
+            "U/J ambiente, I/K difusa, O/L especular, WASD, mouse, Esc"
+        )
+
+
+def run(max_frames: int | None = None, visible: bool = True) -> None:
+    Application(visible=visible).run(max_frames=max_frames)

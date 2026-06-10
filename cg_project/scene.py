@@ -134,3 +134,174 @@ MATERIALS = {
     "taca": Material(0.12, 0.55, 0.95, 128.0),
     "lampada": Material(0.25, 0.60, 0.45, 64.0),
 }
+
+
+def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
+    return [
+        SceneObject(
+            "grama",
+            meshes["grama"],
+            Transform(translation=(0.0, -1.0, 0.0), scale=(1000.0, 1.0, 1000.0)),
+            MATERIALS["grama"],
+            EXTERIOR,
+        ),
+        SceneObject(
+            "raposa",
+            meshes["raposa"],
+            Transform(
+                angle=-90.0,
+                axis=(1.0, 0.0, 0.0),
+                translation=(6.0, -1.1, -16.0),
+                scale=(0.05, 0.05, 0.05),
+            ),
+            MATERIALS["raposa"],
+            EXTERIOR,
+        ),
+        SceneObject(
+            "arvore",
+            meshes["arvore"],
+            Transform(
+                translation=(15.0, -1.0, -20.0),
+                scale=(5.0, 5.0, 5.0),
+            ),
+            MATERIALS["arvore"],
+            EXTERIOR,
+        ),
+        SceneObject(
+            "casa",
+            meshes["casa"],
+            Transform(
+                angle=270.0,
+                axis=(0.0, 1.0, 0.0),
+                translation=(0.0, -1.0, -30.0),
+                scale=(1.5, 1.5, 1.5),
+            ),
+            MATERIALS["casa"],
+            EXTERIOR,
+        ),
+        SceneObject(
+            "carro",
+            meshes["carro"],
+            Transform(
+                translation=(-6.0, -1.0, -14.0),
+                scale=(0.01, 0.01, 0.01),
+            ),
+            MATERIALS["carro"],
+            EXTERIOR,
+            {"headlight", "white_light"},
+        ),
+        SceneObject(
+            "frango",
+            meshes["frango"],
+            Transform(
+                angle=90.0,
+                axis=(0.0, 0.0, 1.0),
+                translation=(3.3, -0.6, -14.0),
+                scale=(0.005, 0.005, -0.005),
+            ),
+            MATERIALS["frango"],
+            EXTERIOR,
+        ),
+        SceneObject(
+            "porta",
+            meshes["porta"],
+            Transform(
+                angle=270.0,
+                axis=(0.0, 1.0, 0.0),
+                translation=(1.4, 1.8, -22.7),
+                scale=(1.5, 1.5, 1.5),
+            ),
+            MATERIALS["porta"],
+            EXTERIOR,
+        ),
+        SceneObject(
+            "cama",
+            meshes["cama"],
+            Transform(
+                translation=(4.0, 2.03, -31.0),
+                scale=(2.0, 2.0, 2.0),
+            ),
+            MATERIALS["cama"],
+            INTERIOR,
+        ),
+        SceneObject(
+            "comoda",
+            meshes["comoda"],
+            Transform(
+                angle=90.0,
+                axis=(0.0, 1.0, 0.0),
+                translation=(-6.7, 2.03, -25.0),
+                scale=(0.02, 0.02, 0.02),
+            ),
+            MATERIALS["comoda"],
+            INTERIOR,
+        ),
+        SceneObject(
+            "taca_1",
+            meshes["taca"],
+            Transform(
+                translation=(-5.6, 3.98, -24.2),
+                scale=(0.2, 0.2, 0.2),
+            ),
+            MATERIALS["taca"],
+            INTERIOR,
+        ),
+        SceneObject(
+            "taca_2",
+            meshes["taca"],
+            Transform(
+                translation=(-5.6, 3.98, -25.8),
+                scale=(0.2, 0.2, 0.2),
+            ),
+            MATERIALS["taca"],
+            INTERIOR,
+        ),
+        SceneObject(
+            "lampada_amarela",
+            meshes["lampada"],
+            Transform(
+                translation=(1.8, 3.15, -36.0),
+                scale=(1.5, 1.5, 1.5),
+            ),
+            MATERIALS["lampada"],
+            INTERIOR,
+            {"Lamp"},
+        ),
+        SceneObject(
+            "lampada_azul",
+            meshes["lampada"],
+            Transform(
+                translation=(-5.5, 3.15, -25.0),
+                scale=(1.5, 1.5, 1.5),
+            ),
+            MATERIALS["lampada"],
+            INTERIOR,
+            {"Lamp"},
+        ),
+    ]
+
+
+def create_lights() -> list[PointLight]:
+    return [
+        PointLight(
+            "farol",
+            (1.0, 0.95, 0.8),
+            EXTERIOR,
+            "carro",
+            (0.0, 65.0, 210.0),
+        ),
+        PointLight(
+            "luz_amarela",
+            (1.0, 0.45, 0.15),
+            INTERIOR,
+            "lampada_amarela",
+            (0.0, 0.4, 0.0),
+        ),
+        PointLight(
+            "luz_azul",
+            (0.2, 0.4, 1.0),
+            INTERIOR,
+            "lampada_azul",
+            (0.0, 0.4, 0.0),
+        ),
+    ]
