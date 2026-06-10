@@ -1,93 +1,84 @@
 #version 330 core
 
-// Fragment shader com modelo de iluminação Phong completo.
-// Os parâmetros Ka, Kd, Ks e Ns vêm do arquivo .mtl de cada objeto
-// e são enviados via uniform pelo draw_object() em objects_manager.py.
+#define MAX_LIGHTS 3
 
-// -----------------------------------------------------------------
-// Struct: fonte de luz
-// -----------------------------------------------------------------
-struct Light {
+struct PointLight {
     vec3 position;
-    vec3 ambient;   // intensidade ambiente  (Ia)
-    vec3 diffuse;   // intensidade difusa    (Id)
-    vec3 specular;  // intensidade especular (Is)
+    vec3 color;
+    int groupID;
+    bool enabled;
 };
 
-// -----------------------------------------------------------------
-// Struct: material do objeto (valores vindos do .mtl)
-// -----------------------------------------------------------------
 struct Material {
-    vec3  Ka;   // coeficiente de reflexão ambiente
-    vec3  Kd;   // coeficiente de reflexão difusa
-    vec3  Ks;   // coeficiente de reflexão especular
-    float Ns;   // expoente especular (brilho)
-    float d;    // opacidade (1.0 = totalmente opaco)
+    float ka;
+    float kd;
+    float ks;
+    float ns;
+    float opacity;
 };
 
-// -----------------------------------------------------------------
-// Uniforms
-// -----------------------------------------------------------------
-#define MAX_LIGHTS 10
-uniform int      numActiveLights;
-uniform Light    lights[MAX_LIGHTS];
+uniform int numLights;
+uniform PointLight lights[MAX_LIGHTS];
+uniform Material material;
+uniform int objectGroupID;
 
-uniform Material material;      // parâmetros do .mtl do objeto atual
-uniform vec3     viewPos;       // posição da câmera no espaço do mundo
-
-// Recebidos do vertex shader
-varying vec2 out_texture;
-varying vec3 out_normal;
-varying vec3 out_fragPos;
-
+uniform bool ambientEnabled;
+uniform float ambientIntensity;
+uniform float diffuseScale;
+uniform float specularScale;
+uniform vec3 emissiveColor;
+uniform vec3 viewPos;
 uniform sampler2D samplerTexture;
 
+in vec2 out_texture;
+in vec3 out_fragPos;
+in vec3 out_normal;
 
-// -----------------------------------------------------------------
-// Main
-// -----------------------------------------------------------------
-void main(){
+out vec4 FragColor;
 
-    vec3 norm    = normalize(out_normal);
+void main() {
+    vec3 normal = normalize(out_normal);
     vec3 viewDir = normalize(viewPos - out_fragPos);
-
-    vec3 result = vec3(0.0);
-
-    for (int i = 0; i < numActiveLights; i++) {
-
-        // --- Ambiente ---
-        // A cor ambiente é modulada pelo Ka do material e pela intensidade Ia da luz.
-        vec3 ambient = lights[i].ambient * material.Ka;
-
-        // --- Difusa (Lambertiana) ---
-        vec3  lightDir = normalize(lights[i].position - out_fragPos);
-        float diff     = max(dot(norm, lightDir), 0.0);
-        vec3  diffuse  = lights[i].diffuse * (diff * material.Kd);
-
-        // --- Especular (Phong) ---
-        vec3  reflectDir = reflect(-lightDir, norm);
-        float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.Ns);
-        vec3  specular   = lights[i].specular * (spec * material.Ks);
-
-        result += ambient + diffuse + specular;
-    }
-
-    // Textura modula a componente difusa/ambiente; especular não é afetada pela textura
-    // para manter a aparência de brilho mesmo em superfícies escuras.
-    vec4 texColor = texture2D(samplerTexture, out_texture);
-
-    // Componente especular some separada para não ser "apagada" pela textura escura
+    vec3 ambient = vec3(0.0);
+    vec3 diffuseTotal = vec3(0.0);
     vec3 specularTotal = vec3(0.0);
-    for (int i = 0; i < numActiveLights; i++) {
-        vec3  lightDir   = normalize(lights[i].position - out_fragPos);
-        vec3  reflectDir = reflect(-lightDir, norm);
-        float spec       = pow(max(dot(viewDir, reflectDir), 0.0), material.Ns);
-        specularTotal   += lights[i].specular * (spec * material.Ks);
+
+    if (ambientEnabled) {
+        ambient = vec3(ambientIntensity * material.ka);
     }
 
-    // Cor final: iluminação * textura + especular puro
-    vec3 lighting       = result - specularTotal; // ambiente + difusa
-    vec3 finalRGB       = lighting * texColor.rgb + specularTotal;
+    for (int i = 0; i < numLights; i++) {
+        if (!lights[i].enabled || lights[i].groupID != objectGroupID) {
+            continue;
+        }
 
-    gl_FragColor = vec4(finalRGB, texColor.a * material.d);
+        vec3 lightDir = normalize(lights[i].position - out_fragPos);
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        diffuseTotal += (
+            lights[i].color
+            * material.kd
+            * diffuseScale
+            * diffuseFactor
+        );
+
+        vec3 reflectDir = reflect(-lightDir, normal);
+        float specularFactor = pow(
+            max(dot(viewDir, reflectDir), 0.0),
+            material.ns
+        );
+        specularTotal += (
+            lights[i].color
+            * material.ks
+            * specularScale
+            * specularFactor
+        );
+    }
+
+    vec4 textureColor = texture(samplerTexture, out_texture);
+    vec3 finalColor = (
+        (ambient + diffuseTotal) * textureColor.rgb
+        + specularTotal
+        + emissiveColor
+    );
+    FragColor = vec4(finalColor, textureColor.a * material.opacity);
 }
