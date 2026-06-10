@@ -107,6 +107,9 @@ class SceneObject:
     material: Material
     group_id: int
     emissive_parts: set[str] = field(default_factory=set)
+    part_tints: dict[str, tuple[float, float, float]] = field(
+        default_factory=dict
+    )
     surface_region: int = ALL_SURFACES
     surface_boundary_z: float = 0.0
 
@@ -330,6 +333,14 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             ),
             MATERIALS["lampada_parede"],
             INTERIOR,
+            {"Brass_Color_Wall_Sconce_Art_Deco_Lamp polySurface1"},
+            {
+                "Brass_Color_Wall_Sconce_Art_Deco_Lamp polySurface1": (
+                    0.12,
+                    0.30,
+                    1.0,
+                )
+            },
         ),
     ]
 

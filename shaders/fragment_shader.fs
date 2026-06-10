@@ -30,6 +30,7 @@ uniform float ambientIntensity;
 uniform float diffuseScale;
 uniform float specularScale;
 uniform vec3 emissiveColor;
+uniform vec3 textureTint;
 uniform vec3 viewPos;
 uniform sampler2D samplerTexture;
 
@@ -103,8 +104,9 @@ void main() {
 
     // A textura modula ambiente e difusa; especular e emissao somam luz.
     vec4 textureColor = texture(samplerTexture, out_texture);
+    vec3 baseColor = textureColor.rgb * textureTint;
     vec3 finalColor = (
-        (ambient + diffuseTotal) * textureColor.rgb
+        (ambient + diffuseTotal) * baseColor
         + specularTotal
         + emissiveColor
     );

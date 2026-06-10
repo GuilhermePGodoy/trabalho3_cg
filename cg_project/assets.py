@@ -76,22 +76,24 @@ class AssetManager:
         obj_path: str | Path,
         default_texture: str | Path | None = None,
         force_white: bool = False,
+        split_by_group: bool = False,
     ) -> Mesh:
         """Carrega um OBJ e escolhe uma textura para cada material usado."""
 
         obj_path = Path(obj_path)
         default_path = Path(default_texture) if default_texture else None
-        model = self._parse_obj(obj_path)
+        model = self._parse_obj(obj_path, split_by_group=split_by_group)
         texture_map = self._parse_mtl_textures(model["mtl_path"])
         parts = []
 
-        for material_name, vertices in model["parts"].items():
+        for part_name, vertices in model["parts"].items():
             first_vertex = len(self._vertex_data) // 8
             self._vertex_data.extend(vertices)
 
             texture_path = None
             if not force_white:
                 # O MTL fornece apenas map_Kd; seus coeficientes de luz sao ignorados.
+                material_name = model["part_materials"][part_name]
                 mapped_texture = texture_map.get(material_name)
                 if mapped_texture:
                     candidate = obj_path.parent / os.path.basename(mapped_texture)
@@ -107,7 +109,7 @@ class AssetManager:
             )
             parts.append(
                 MeshPart(
-                    name=material_name,
+                    name=part_name,
                     first_vertex=first_vertex,
                     vertex_count=len(vertices) // 8,
                     texture_id=texture_id,
@@ -299,14 +301,16 @@ class AssetManager:
         return textures
 
     @staticmethod
-    def _parse_obj(path: Path) -> dict:
+    def _parse_obj(path: Path, split_by_group: bool = False) -> dict:
         """Converte faces OBJ em vertices intercalados separados por material."""
 
         positions = []
         texture_coords = []
         normals = []
         parts: OrderedDict[str, array] = OrderedDict()
+        part_materials: dict[str, str] = {}
         material_name = "default"
+        group_name = "default"
         mtl_path = None
 
         with path.open(errors="replace") as file:
@@ -327,6 +331,8 @@ class AssetManager:
                 elif tag == "mtllib" and len(values) > 1:
                     candidate = path.parent / " ".join(values[1:])
                     mtl_path = candidate if candidate.exists() else None
+                elif tag in ("g", "o") and len(values) > 1:
+                    group_name = " ".join(values[1:])
                 elif tag in ("usemtl", "usemat") and len(values) > 1:
                     material_name = values[1]
                 elif tag == "f":
@@ -334,7 +340,9 @@ class AssetManager:
                         AssetManager._parse_face_vertex(token)
                         for token in values[1:]
                     ]
-                    bucket = parts.setdefault(material_name, array("f"))
+                    part_name = group_name if split_by_group else material_name
+                    bucket = parts.setdefault(part_name, array("f"))
+                    part_materials[part_name] = material_name
                     # Triangulacao em leque permite faces com tres ou mais vertices.
                     for index in range(1, len(face) - 1):
                         triangle = (face[0], face[index], face[index + 1])
@@ -373,7 +381,11 @@ class AssetManager:
                             )
                             bucket.extend((*position, *uv, *normal))
 
-        return {"parts": parts, "mtl_path": mtl_path}
+        return {
+            "parts": parts,
+            "part_materials": part_materials,
+            "mtl_path": mtl_path,
+        }
 
     @staticmethod
     def _parse_face_vertex(token: str) -> tuple[int, int | None, int | None]:

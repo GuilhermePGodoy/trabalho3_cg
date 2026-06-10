@@ -163,6 +163,7 @@ class Application:
                 obj_path,
                 default_texture=texture_path,
                 force_white=force_white,
+                split_by_group=name == "lampada_parede",
             )
         meshes["grama"] = self.assets.create_ground_mesh(
             textures / "piso/grass.jpg"

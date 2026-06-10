@@ -149,6 +149,10 @@ class Renderer:
         )
 
         for part in scene_object.mesh.parts:
+            self.main_shader.set_vec3(
+                "textureTint",
+                scene_object.part_tints.get(part.name, (1.0, 1.0, 1.0)),
+            )
             emission = (
                 source_light.color
                 if source_light and part.name in scene_object.emissive_parts

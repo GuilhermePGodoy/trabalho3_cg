@@ -53,7 +53,8 @@ python -c "from cg_project import run; run()"
 - Nove vagalumes se movem em trajetorias pseudoaleatorias ao redor de um
   centroide proximo a fogueira e a raposa. Cada inseto carrega uma fonte
   branca atenuada, sem alterar a cor de sua textura.
-- A luminaria de piso amarela e a arandela azul usam cores diferentes.
+- A luminaria de piso amarela e a arandela azul usam cores diferentes; a
+  cupula azul da arandela fica emissiva enquanto sua luz esta ligada.
 - Luzes internas afetam somente objetos internos.
 - A fogueira afeta somente objetos externos.
 - A fachada voltada para a entrada pertence ao exterior; o restante da malha
