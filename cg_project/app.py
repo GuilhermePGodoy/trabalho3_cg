@@ -63,7 +63,7 @@ class Application:
         meshes = self._load_meshes()
         self.assets.finalize_geometry()
         cubemap = self.assets.load_cubemap_cross(
-            PROJECT_ROOT / "assets/textures/skybox/night.png"
+            PROJECT_ROOT / "assets/textures/skybox/night8.png"
         )
         self.objects = create_scene(meshes)
         self.objects_by_name = {obj.name: obj for obj in self.objects}
