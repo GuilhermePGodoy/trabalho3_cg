@@ -20,13 +20,12 @@ STAR_PART = "Gold"
 
 # Cinco pontos do Cruzeiro do Sul sobre o frontao da fachada.
 SOUTHERN_CROSS = (
-    ((0.0, 12.6, -18.22), -8.0),
-    ((0.0, 8.3, -18.22), 10.0),
-    ((-2.0, 10.5, -18.22), -18.0),
-    ((1.9, 10.8, -18.22), 14.0),
-    ((-0.65, 9.55, -18.22), 4.0),
+    (( 0.00, 11.925, -21.12), -8.0),
+    (( 0.00,  8.250, -21.12), 10.0),
+    ((-1.650, 10.4625, -21.12), -18.0),
+    (( 1.650, 10.3875, -21.12), 14.0),
+    (( 0.450,  9.8625, -21.12), 4.0),
 )
-
 
 @dataclass(frozen=True)
 class Material:
@@ -420,7 +419,7 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
 
 
 def create_lights() -> list[PointLight]:
-    """Cria as fontes da fogueira, das luminarias e dos vagalumes."""
+    """Cria as fontes da fogueira, luminarias, vagalumes e estrelas."""
 
     lights = [
         PointLight(
@@ -455,6 +454,18 @@ def create_lights() -> list[PointLight]:
                 f"brilho_vagalume_{index + 1}",
                 (0.0, 0.0, 0.0),
                 attenuation=(1.0, 0.35, 0.44),
+            )
+        )
+
+    for index in range(5):
+        lights.append(
+            PointLight(
+                f"luz_estrela_{index + 1}",
+                (0.12, 0.32, 1.0),
+                EXTERIOR,
+                f"estrela_{index + 1}",
+                (0.0, 0.0, 0.0),
+                attenuation=(1.0, 0.28, 0.22),
             )
         )
 

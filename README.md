@@ -39,6 +39,7 @@ python -c "from cg_project import run; run()"
 | `3` | Liga/desliga a arandela azul entre as taças |
 | `4` | Liga/desliga a luz ambiente |
 | `5` | Liga/desliga as luzes dos vagalumes |
+| `6` | Liga/desliga as luzes azuis do Cruzeiro do Sul |
 | `U` / `J` | Aumenta/diminui a intensidade ambiente |
 | `I` / `K` | Aumenta/diminui a reflexao difusa |
 | `O` / `L` | Aumenta/diminui a reflexao especular |
@@ -54,6 +55,8 @@ python -c "from cg_project import run; run()"
   centroide proximo a fogueira e a raposa. Cada inseto possui uma pequena
   barriga branca emissiva com uma fonte atenuada, que pisca de forma subita
   e assincrona sem alterar a cor da textura do inseto.
+- Cinco estrelas formam o Cruzeiro do Sul no frontao externo da casa. Cada
+  estrela e emissiva e possui sua propria fonte pontual azul.
 - A luminaria de piso amarela e a arandela azul usam cores diferentes; a
   cupula azul da arandela fica emissiva enquanto sua luz esta ligada.
 - Luzes internas afetam somente objetos internos.

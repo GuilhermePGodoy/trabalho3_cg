@@ -286,6 +286,17 @@ class Application:
             enabled = self.firefly_swarm.toggle_lights()
             state = "ligadas" if enabled else "desligadas"
             print(f"luzes dos vagalumes: {state}")
+        elif action == glfw.PRESS and key == glfw.KEY_6:
+            star_lights = [
+                light
+                for light in self.lights
+                if light.name.startswith("luz_estrela_")
+            ]
+            enabled = not any(light.enabled for light in star_lights)
+            for light in star_lights:
+                light.enabled = enabled
+            state = "ligada" if enabled else "desligada"
+            print(f"constelacao do cruzeiro do sul: {state}")
         elif action in (glfw.PRESS, glfw.REPEAT):
             if key == glfw.KEY_U:
                 self.lighting.change_ambient(0.05)
@@ -329,6 +340,7 @@ class Application:
     def _print_controls() -> None:
         print(
             "Controles: 1/2/3 luzes, 4 ambiente, 5 vagalumes, "
+            "6 cruzeiro do sul, "
             "U/J ambiente, I/K difusa, O/L especular, WASD, mouse, Esc"
         )
 

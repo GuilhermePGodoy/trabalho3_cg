@@ -1,6 +1,6 @@
 #version 330 core
 
-#define MAX_LIGHTS 12
+#define MAX_LIGHTS 17
 
 struct PointLight {
     vec3 position;
