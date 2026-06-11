@@ -16,6 +16,16 @@ ENTRANCE_SURFACES = 1
 OTHER_SURFACES = 2
 CHIMNEY_PART = "rocks.002:component_1"
 FIREFLY_GLOW_PART = "firefly_glow"
+STAR_PART = "Gold"
+
+# Cinco pontos do Cruzeiro do Sul sobre o frontao da fachada.
+SOUTHERN_CROSS = (
+    ((0.0, 12.6, -18.22), -8.0),
+    ((0.0, 8.3, -18.22), 10.0),
+    ((-2.0, 10.5, -18.22), -18.0),
+    ((1.9, 10.8, -18.22), 14.0),
+    ((-0.65, 9.55, -18.22), 4.0),
+)
 
 
 @dataclass(frozen=True)
@@ -171,6 +181,7 @@ MATERIALS = {
     "fogueira": Material(0.22, 0.70, 0.18, 24.0),
     "vagalume": Material(0.45, 0.75, 0.30, 32.0),
     "brilho_vagalume": Material(0.0, 0.0, 0.0, 1.0),
+    "estrela": Material(0.10, 0.45, 0.85, 96.0),
     "cama": Material(0.20, 0.75, 0.08, 12.0),
     "comoda": Material(0.18, 0.65, 0.25, 32.0),
     "taca": Material(0.12, 0.55, 0.95, 128.0),
@@ -362,6 +373,24 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
             },
         ),
     ]
+
+    for index, (position, angle) in enumerate(SOUTHERN_CROSS, start=1):
+        objects.append(
+            SceneObject(
+                f"estrela_{index}",
+                meshes["estrela"],
+                Transform(
+                    angle=angle,
+                    axis=(0.0, 0.0, 1.0),
+                    translation=position,
+                    scale=(0.90, 0.90, 0.45),
+                ),
+                MATERIALS["estrela"],
+                EXTERIOR,
+                emissive_parts={STAR_PART},
+                part_tints={STAR_PART: (0.10, 0.22, 1.0)},
+            )
+        )
 
     for index in range(9):
         objects.append(

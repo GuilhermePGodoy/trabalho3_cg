@@ -168,6 +168,11 @@ class Application:
                 models / "inseto/Fly_Tris_Diffuse.png",
                 False,
             ),
+            "estrela": (
+                models / "estrela/Star_obj.obj",
+                None,
+                True,
+            ),
         }
 
         meshes = {}
