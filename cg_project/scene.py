@@ -370,7 +370,7 @@ def create_scene(meshes: dict[str, Any]) -> list[SceneObject]:
                 meshes["vagalume"],
                 Transform(
                     axis=(0.0, 1.0, 0.0),
-                    scale=(35.0, 35.0, 35.0),
+                    scale=(12.0, 12.0, 12.0),
                 ),
                 MATERIALS["vagalume"],
                 EXTERIOR,
@@ -421,7 +421,7 @@ def create_lights() -> list[PointLight]:
         lights.append(
             PointLight(
                 f"luz_vagalume_{index + 1}",
-                (1.2, 1.2, 1.2),
+                (0.8, 1, 0),
                 EXTERIOR,
                 f"brilho_vagalume_{index + 1}",
                 (0.0, 0.0, 0.0),

@@ -36,8 +36,8 @@ class FireflySwarm:
         count = len(self.members)
 
         self._base_offsets = self._rng.uniform(
-            low=(-2.2, -0.55, -1.4),
-            high=(2.2, 0.65, 1.4),
+            low=(-2.2, 1.0, -1.4),
+            high=(4.2, 8.5, 1.4),
             size=(count, 3),
         )
         self._amplitudes = self._rng.uniform(

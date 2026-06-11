@@ -36,9 +36,9 @@ python -c "from cg_project import run; run()"
 |---|---|
 | `1` | Liga/desliga a luz da fogueira |
 | `2` | Liga/desliga a luminaria amarela |
-| `3` | Liga/desliga a arandela azul entre as tacas |
+| `3` | Liga/desliga a arandela azul entre as taças |
 | `4` | Liga/desliga a luz ambiente |
-| `5` | Liga/desliga as luzes brancas dos vagalumes |
+| `5` | Liga/desliga as luzes dos vagalumes |
 | `U` / `J` | Aumenta/diminui a intensidade ambiente |
 | `I` / `K` | Aumenta/diminui a reflexao difusa |
 | `O` / `L` | Aumenta/diminui a reflexao especular |
